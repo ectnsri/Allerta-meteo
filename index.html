@@ -7,104 +7,84 @@
 <title>Allerta Meteo Milano</title>
 
 <style>
-
 html,body{
     margin:0;
     padding:0;
-    background:#ffffff;
+    background:white;
     font-family:Segoe UI, Arial, sans-serif;
 }
 
 .widget{
-    width:400px;
+    width:320px;
+    height:420px;
     box-sizing:border-box;
-    padding:12px;
+    border:1px solid #d9d9d9;
+    border-radius:12px;
+    padding:14px;
+    overflow:hidden;
     background:white;
 }
 
 .titolo{
     text-align:center;
-    font-size:28px;
+    font-size:22px;
     font-weight:700;
 }
 
 .zona{
     text-align:center;
-    font-size:12px;
-    color:#666;
-    margin-top:4px;
-    margin-bottom:12px;
-}
-
-.stato{
-    text-align:center;
-    font-size:20px;
-    font-weight:700;
-    margin-bottom:15px;
-}
-
-.giorni{
-    display:flex;
-    gap:24px;
-    justify-content:space-between;
-    margin-top:10px;
-}
-
-.giorno{
-    flex:1;
-}
-
-.giorno-title{
-    text-align:center;
-    font-size:14px;
-    font-weight:700;
-    margin-bottom:10px;
-    color:#444;
-}
-
-.riga{
-    font-size:13px;
-    margin:8px 0;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.verde{
-    color:#2e7d32;
-    font-weight:700;
-}
-
-.giallo{
-    color:#f9a825;
-    font-weight:700;
-}
-
-.arancione{
-    color:#ef6c00;
-    font-weight:700;
-}
-
-.rosso{
-    color:#d32f2f;
-    font-weight:700;
-}
-
-.footer{
-    margin-top:14px;
-    padding-top:10px;
-    border-top:1px solid #eeeeee;
-    text-align:center;
     font-size:11px;
     color:#666;
 }
 
-.fonte{
-    margin-top:6px;
-    font-size:10px;
-    color:#888;
+.dot{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    margin:12px auto;
 }
 
+.stato{
+    text-align:center;
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.tabella{
+    display:grid;
+    grid-template-columns:1fr 70px 70px;
+    row-gap:8px;
+    align-items:center;
+    font-size:12px;
+}
+
+.data{
+    text-align:center;
+    font-weight:700;
+}
+
+.pallino{
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.footer{
+    margin-top:12px;
+    border-top:1px solid #eee;
+    padding-top:8px;
+    text-align:center;
+    font-size:10px;
+    color:#666;
+    line-height:1.3;
+}
+
+.fonte{
+    margin-top:6px;
+    font-size:9px;
+    color:#888;
+}
 </style>
 </head>
 
@@ -116,24 +96,17 @@ html,body{
 
 <script>
 
-function classeLivello(livello){
-
-    if(!livello) return "verde";
-
-    livello = livello.toLowerCase();
-
-    if(livello.includes("ross")) return "rosso";
-    if(livello.includes("aranc")) return "arancione";
-    if(livello.includes("giall")) return "giallo";
-
-    return "verde";
-}
-
-function htmlLivello(livello){
-
-    const cls = classeLivello(livello);
-
-    return `<span class="${cls}">${livello}</span>`;
+function semaforo(colore){
+    switch(colore){
+        case "rosso":
+            return "#d32f2f";
+        case "arancione":
+            return "#ef6c00";
+        case "giallo":
+            return "#fbc02d";
+        default:
+            return "#2e7d32";
+    }
 }
 
 async function aggiorna(){
@@ -145,16 +118,13 @@ async function aggiorna(){
         );
 
         const json = await response.json();
-
         const d = json.data;
 
-        const oggi = d.oggi;
-        const domani = d.domani;
+        const coloreOggi =
+            semaforo(d.oggi.allerta.colore.toLowerCase());
 
-        const statoOggi = oggi.allerta.descrizione;
-        const statoColore = classeLivello(
-            oggi.allerta.colore
-        );
+        const coloreDomani =
+            semaforo(d.domani.allerta.colore.toLowerCase());
 
         document.getElementById("contenuto").innerHTML = `
 
@@ -166,80 +136,86 @@ async function aggiorna(){
                 ${d.zona}
             </div>
 
-            <div class="stato ${statoColore}">
-                ${statoOggi}
+            <div class="dot"
+                 style="background:${coloreOggi}">
             </div>
 
-            <div class="giorni">
+            <div class="stato"
+                 style="color:${coloreOggi}">
+                 ${d.oggi.allerta.descrizione}
+            </div>
 
-                <div class="giorno">
+            <div class="tabella">
 
-                    <div class="giorno-title">
-                        OGGI
-                    </div>
+                <div></div>
 
-                    <div class="riga">
-                        <span>🌊 Idraulico</span>
-                        ${htmlLivello(oggi.idraulico)}
-                    </div>
-
-                    <div class="riga">
-                        <span>⛈️ Temporali</span>
-                        ${htmlLivello(oggi.temporali)}
-                    </div>
-
-                    <div class="riga">
-                        <span>⛰️ Idrogeologico</span>
-                        ${htmlLivello(oggi.idrogeologico)}
-                    </div>
-
+                <div class="data">
+                    ${d.bulletin_info.data_oggi}
                 </div>
 
-                <div class="giorno">
+                <div class="data">
+                    ${d.bulletin_info.data_domani}
+                </div>
 
-                    <div class="giorno-title">
-                        DOMANI
-                    </div>
+                <div>🌊 Idraulico</div>
 
-                    <div class="riga">
-                        <span>🌊 Idraulico</span>
-                        ${htmlLivello(domani.idraulico)}
-                    </div>
+                <div class="pallino"
+                     style="color:${coloreOggi}">
+                     ●
+                </div>
 
-                    <div class="riga">
-                        <span>⛈️ Temporali</span>
-                        ${htmlLivello(domani.temporali)}
-                    </div>
+                <div class="pallino"
+                     style="color:${coloreDomani}">
+                     ●
+                </div>
 
-                    <div class="riga">
-                        <span>⛰️ Idrogeologico</span>
-                        ${htmlLivello(domani.idrogeologico)}
-                    </div>
+                <div>⛈️ Temporali</div>
 
+                <div class="pallino"
+                     style="color:${coloreOggi}">
+                     ●
+                </div>
+
+                <div class="pallino"
+                     style="color:${coloreDomani}">
+                     ●
+                </div>
+
+                <div>⛰️ Idrogeologico</div>
+
+                <div class="pallino"
+                     style="color:${coloreOggi}">
+                     ●
+                </div>
+
+                <div class="pallino"
+                     style="color:${coloreDomani}">
+                     ●
                 </div>
 
             </div>
 
             <div class="footer">
 
+                Aggiornamento:
                 ${d.bulletin_info.data_bollettino}
-                &nbsp;
                 ${d.bulletin_info.ora_bollettino}
 
                 <div class="fonte">
-                    Fonte: AllertaMeteo.app / Protezione Civile
+                    Fonte: AllertaMeteo.app / Protezione Civile<br>
+                    allertameteo.app/lombardia/milano/milano
                 </div>
 
             </div>
 
         `;
 
-    }catch(error){
+    }
+    catch(e){
 
         document.getElementById("contenuto").innerHTML =
-            "Errore nel caricamento del bollettino";
+        "Errore caricamento dati";
 
-        console.error(error);
     }
 
 }
@@ -255,4 +231,3 @@ setInterval(
 
 </body>
 </html>
-``
